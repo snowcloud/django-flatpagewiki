@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% load markup sitevars comments %}
+
+{% block title %}{{ object.title }}{% endblock %}
+{% block head_extra %}
+<style type="text/css">
+	#wiki_source { background-color: #efefff; }
+	legend { font-weight: bolder; }
+	label { display: block; font-weight: bolder;}
+</style>
+
+{% endblock %}
+
+
+{% block content %}
+
+{% if not user.is_anonymous %}
+
+<h2>Make a new page</h2>
+
+<div id='wiki_source'>
+
+	<form action="" method="post">{% csrf_token %}
+
+		<fieldset>
+			<legend>Edit this page:</legend><br/>
+			{{ form.url.errors }}
+			<label for="url">url: <em>(can't be changed)</em></label> {{ form.data.url }}<br/><br/>
+			{{ form.title.errors }}
+			<label for="title">Title: <em>(required)</em></label> {{ form.title }}<br/><br/>
+
+			{{ form.content.errors }}
+			<label for="content">Content: <em>(required)</em></label> {{ form.content }}
+
+		</fieldset>
+		<input type="hidden" name="ref" value="{{ ref }}"/>
+		<input type="hidden" name="url" value="{{ form.data.url }}"/>
+		<input type="submit" name="result" value="Save"/>
+		<input type="submit" name="result" value="Cancel" id="cancel_button"/>
+
+	</form>
+
+</div>
+{% endif %}
+
+{% endblock %}

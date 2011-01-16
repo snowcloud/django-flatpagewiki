@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+{% load markup sitevars comments %}
+
+{% block title %}{{ object.title }}{% endblock %}
+{% block head_extra %}
+<style type="text/css">
+    #wiki_source { background-color: #efefff; }
+    legend { font-weight: bolder; }
+    label { display: block; font-weight: bolder;}
+    .t_area { width: 420px; }
+    {% ifequal edit '1' %}
+        #wiki_content { display: none;}
+        #wiki_source { display: visible;}
+    {% else %}
+        #wiki_content { display: visible;}
+        #wiki_source { display: none;}
+    {% endifequal %}
+</style>
+
+<script type='text/javascript' src='/media/js/jquery-latest.pack.js'></script>
+
+<script type="text/javascript">
+
+    function show_source() {
+        $("#wiki_source").fadeIn("slow");
+        $("#wiki_content").hide();
+    }   
+    function show_content() {
+        $("#wiki_content").fadeIn("slow");
+        $("#wiki_source").hide();
+    }   
+    $(function() {
+        $("#edit_link").href("#").click(function() { show_source();});
+        $("#cancel_button").attr("type","button").click(function() {show_content();})
+    });
+
+</script>
+
+{% endblock %}
+
+
+{% block content %}
+
+<div id='wiki_content'>
+
+    {{ object.content|textile }}
+
+    {% if not user.is_anonymous %}<p><a href="?edit=1" id="edit_link">edit page</a></p>{% endif %}
+    
+{% if object.enable_comments %}
+
+    <h3>Comments</h3>
+
+    {% get_comment_list for flatpages.flatpage object.id as comment_list %}
+    {% if comment_list %}
+
+        {% for object in comment_list %}
+            {% if object.is_public %}
+                <div class="ct_comments">
+                    <div class="ct_comment_info">{{ object.user_name }} - {{ object.submit_date|date:"j F Y, H:i" }}</div>
+                    <div class="ct_comment">{{ object.comment|escape|textile }}</div>
+                </div>
+            {% endif %}
+        {% endfor %}
+
+    {% else %}
+     <p>none yet- add yours below!</p>
+    {% endif %}
+
+    <p>&nbsp;</p>
+
+    <h4 id="add_comment">Add your comment:</h4>
+
+        {% if user.is_anonymous %}
+            <em>If you are a member, please 
+                <a href="{% site_base %}accounts/login/?next={{ REQ_PATH }}">log in</a> first.</em>
+        {% else %}
+            {% render_comment_form for flatpages.flatpage object.id %}
+        {% endif %}
+
+
+{% endif %}
+</div>
+
+{% if not user.is_anonymous %}
+<div id='wiki_source'>
+
+    <form action="{{ object.url }}" method="post">{% csrf_token %}
+
+        <fieldset>
+            <legend>Edit this page:</legend><br/>
+            {{ form.url.errors }}
+            <label for="url">url: <em>(required)</em></label> {{ form.data.url }}<br/><br/>
+            {{ form.title.errors }}
+            <label for="title">Title: <em>(required)</em></label> {{ form.title }}<br/><br/>
+
+            {{ form.content.errors }}
+            <label for="content">Content: <em>(required)</em></label> {{ form.content }}
+
+        </fieldset>
+        <input type="hidden" name="url" value="{{ form.data.url }}"/>
+
+        <input type="submit" name="result" value="Save"/>
+        <input type="submit" name="result" value="Cancel" id="cancel_button"/>
+
+    </form>
+
+</div>
+{% endif %}
+
+{% endblock %}
